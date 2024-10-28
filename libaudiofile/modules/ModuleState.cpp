@@ -118,6 +118,9 @@ status ModuleState::setup(AFfilehandle file, Track *track)
 		return AF_FAIL;
 	}
 
+	if (!m_fileModule)
+		return AF_FAIL;
+
 	if (arrange(file, track) == AF_FAIL)
 		return AF_FAIL;
 
