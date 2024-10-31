@@ -24,6 +24,7 @@
 	sound files.
 */
 
+#include <limits.h>
 #include "config.h"
 
 #ifdef __USE_SGI_HEADERS__
@@ -321,15 +322,33 @@ void printversion (void)
 */
 bool copyaudiodata (AFfilehandle infile, AFfilehandle outfile, int trackid)
 {
-	int frameSize = afGetVirtualFrameSize(infile, trackid, 1);
-
 	const int kBufferFrameCount = 65536;
-	void *buffer = malloc(kBufferFrameCount * frameSize);
+	int frameSize = afGetVirtualFrameSize(infile, trackid, 1);
+	bool success = true;
+	void *buffer = NULL;
+
+	if (frameSize <= 0)
+	{
+		fprintf(stderr, "afGetVirtualFrameSize error! \n");
+		return false;
+	}
+
+	if (frameSize > INT_MAX / kBufferFrameCount)
+	{
+		fprintf(stderr, "Prevent integer overflow! \n");
+		return false;
+	}
+
+	buffer = malloc(kBufferFrameCount * frameSize);
+
+	if (buffer == NULL)
+	{
+		fprintf(stderr, "allocation of bytes failed! \n");
+		return false;
+	}
 
 	AFframecount totalFrames = afGetFrameCount(infile, AF_DEFAULT_TRACK);
 	AFframecount totalFramesWritten = 0;
-
-	bool success = true;
 
 	while (totalFramesWritten < totalFrames)
 	{
